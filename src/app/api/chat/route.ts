@@ -5,7 +5,7 @@ import { OpenAI } from "openai";
 
 const valyuApiKey = process.env.VALYU_API_KEY;
 const openaiApiKey = process.env.OPENAI_API_KEY;
-const valyu = new Valyu(); // Uses VALYU_API_KEY from env
+const valyu = new Valyu();
 const openai = new OpenAI({ apiKey: openaiApiKey });
 
 export const runtime = "nodejs";
