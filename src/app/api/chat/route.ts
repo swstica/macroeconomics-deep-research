@@ -5,7 +5,7 @@ import { OpenAI } from "openai";
 
 const valyuApiKey = process.env.VALYU_API_KEY;
 const openaiApiKey = process.env.OPENAI_API_KEY;
-const valyu = new Valyu();
+const valyu = valyuApiKey ? new Valyu(valyuApiKey) : new Valyu();
 const openai = new OpenAI({ apiKey: openaiApiKey });
 
 export const runtime = "nodejs";
@@ -31,7 +31,12 @@ export async function POST(req: NextRequest) {
     "Content-Type": "application/json",
   };
   try {
-    if (!valyuApiKey) {
+    const body = await req.json();
+    const messages = body?.messages ?? [];
+    const useValyu = body?.useValyu !== false; // Default to true if not specified
+
+    // Only require Valyu API key if useValyu is true
+    if (useValyu && !valyuApiKey) {
       return Response.json(
         {
           error:
@@ -51,9 +56,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const body = await req.json();
-    const messages = body?.messages ?? [];
-
     // Extract text from the last user message (which uses parts format)
     const lastUserMessage = [...messages]
       .reverse()
@@ -71,34 +73,36 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Step 1: Use Valyu API to ingest/search for relevant data
+    // Step 1: Use Valyu API to ingest/search for relevant data (only if useValyu is true)
     let ingestedData = "";
-    try {
-      // Use Valyu to search and ingest relevant macroeconomic data
-      // You can customize this based on your needs - using web search or specific URLs
-      const searchTask = await valyu.deepresearch.create({
-        input: question,
-        model: "lite",
-        outputFormats: ["markdown"],
-        search: {
-          searchType: "web",
-        },
-      });
+    if (useValyu) {
+      try {
+        // Use Valyu to search and ingest relevant macroeconomic data
+        // You can customize this based on your needs - using web search or specific URLs
+        const searchTask = await valyu.deepresearch.create({
+          input: question,
+          model: "lite",
+          outputFormats: ["markdown"],
+          search: {
+            searchType: "web",
+          },
+        });
 
-      const searchResult = await valyu.deepresearch.wait(searchTask.deepresearch_id!, {
-        pollInterval: 5000,
-        maxWaitTime: 300000, // 5 minutes for data ingestion
-      });
+        const searchResult = await valyu.deepresearch.wait(searchTask.deepresearch_id!, {
+          pollInterval: 5000,
+          maxWaitTime: 300000, // 5 minutes for data ingestion
+        });
 
-      if (searchResult.status === "completed" && searchResult.output) {
-        ingestedData = typeof searchResult.output === "string" 
-          ? searchResult.output 
-          : JSON.stringify(searchResult.output);
+        if (searchResult.status === "completed" && searchResult.output) {
+          ingestedData = typeof searchResult.output === "string" 
+            ? searchResult.output 
+            : JSON.stringify(searchResult.output);
+        }
+      } catch (valyuError: any) {
+        console.error("Valyu data ingestion error:", valyuError);
+        // Continue even if Valyu fails - OpenAI can still generate a response
+        ingestedData = "Note: Could not retrieve additional data from Valyu API.";
       }
-    } catch (valyuError: any) {
-      console.error("Valyu data ingestion error:", valyuError);
-      // Continue even if Valyu fails - OpenAI can still generate a response
-      ingestedData = "Note: Could not retrieve additional data from Valyu API.";
     }
 
     // Step 2: Use OpenAI API to generate response based on ingested data
@@ -109,7 +113,9 @@ RELEVANT DATA FROM VALYU API:
 ${ingestedData}
 
 Use the above data to inform your response. Cite specific numbers and facts from the data when available.`
-      : SYSTEM_PROMPT;
+      : `${SYSTEM_PROMPT}
+
+Note: You are responding without access to real-time data from Valyu API. Base your response on your training data and general knowledge.`;
 
     // Build conversation messages for OpenAI
     const openaiMessages: any[] = [
