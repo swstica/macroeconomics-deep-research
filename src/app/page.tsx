@@ -41,11 +41,28 @@ export default function Home() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!input.trim()) return;
+    if (!input.trim() || isLoading) return;
 
+    const messageText = input.trim();
+    setInput(""); // Clear input immediately
     lastUserMessageMode.current = useValyu;
-    await sendMessage({ text: input });
-    setInput("");
+    await sendMessage({ text: messageText });
+  }
+
+  async function submitMessage() {
+    if (!input.trim() || isLoading) return;
+
+    const messageText = input.trim();
+    setInput(""); // Clear input immediately
+    lastUserMessageMode.current = useValyu;
+    await sendMessage({ text: messageText });
+  }
+
+  function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      submitMessage();
+    }
   }
 
   return (
@@ -283,9 +300,11 @@ export default function Home() {
           <textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
             rows={1}
             placeholder="Ask a macroeconomics question…"
             className="w-full resize-none rounded-2xl border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-500 shadow-sm outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 sm:px-4 sm:py-2.5"
+            disabled={isLoading}
           />
           <button
             type="submit"

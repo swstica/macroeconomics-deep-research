@@ -1,24 +1,59 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+This is a [Next.js](https://nextjs.org) project for a Macroeconomics Research Chatbot that compares responses with and without Valyu API data ingestion.
+
+## Features
+
+- **Dual Mode Comparison**: Toggle between Valyu + OpenAI and OpenAI-only modes
+- **Structured Markdown Responses**: Formatted responses with headings, lists, and emphasis
+- **Mock Mode**: Test the app without using real API keys (saves credits!)
 
 ## Getting Started
 
-First, run the development server:
+### Option 1: Mock Mode (No API Keys Required)
 
+To test the app without using real API keys:
+
+1. Create a `.env.local` file in the root directory:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+USE_MOCK_DATA=true
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Run the development server:
+```bash
+npm run dev
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+3. Open [http://localhost:3000](http://localhost:3000) with your browser
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+**Note**: In mock mode, the app uses simulated data to demonstrate the difference between Valyu+OpenAI and OpenAI-only responses. No API credits are used.
+
+### Option 2: Real API Mode
+
+To use real APIs:
+
+1. Create a `.env.local` file with your API keys:
+```bash
+VALYU_API_KEY=your_valyu_api_key_here
+OPENAI_API_KEY=your_openai_api_key_here
+USE_MOCK_DATA=false
+```
+
+2. Run the development server:
+```bash
+npm run dev
+```
+
+## Environment Variables
+
+- `USE_MOCK_DATA` or `MOCK_MODE`: Set to `"true"` to enable mock mode (no API calls)
+- `VALYU_API_KEY`: Your Valyu API key (required only if not using mock mode and Valyu is enabled)
+- `OPENAI_API_KEY`: Your OpenAI API key (required only if not using mock mode)
+
+## Usage
+
+1. Toggle between "Valyu + OpenAI" and "OpenAI Only" modes using the switch in the header
+2. Ask macroeconomics questions
+3. Compare responses to see the difference between data-enhanced and standard responses
+4. Responses are formatted with markdown (headings, lists, bold, etc.)
 
 ## Learn More
 
