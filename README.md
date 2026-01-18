@@ -1,4 +1,10 @@
-This is a [Next.js](https://nextjs.org) project for a Macroeconomics Research Chatbot that compares responses with and without Valyu API data ingestion.
+An AI Macroeconomics Research Assistant that actually does real economic research- not vibes. Ask it anything about inflation, GDP, interest rates, crises, it pulls academic sources + summarizes trends for you.
+
+## Tech Stack
+- **Next.js**
+- **Vercel AI SDK** for chat experience
+- **Valyu DeepSearch** for academic + economic retrieval
+- **OpenAI** for synthesis
 
 ## Features
 
